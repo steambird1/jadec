@@ -48,10 +48,16 @@ class Autopilot {
  */
 		this.yawMode = "none";
 		/**
- * @type {}
+ * @type {surgeControl}
  */
 		this.surgeMode = "none";
+		/**
+		 * @type {swayControl}
+		 */
 		this.swayMode = "none";
+		/**
+		 * @type {spdControl}
+		 */
 		this.spdMode = "none";
 	}
 

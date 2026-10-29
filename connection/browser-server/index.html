@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>群玉阁 · Browser-server（Node 物理）</title>
+  <link rel="stylesheet" href="../../../panel/styles/inst_general.css" />
+  <link rel="stylesheet" href="../../../panel/styles/panel_style.css" />
+  <link rel="stylesheet" href="../shared/ui/connection.css" />
+</head>
+<body>
+  <header class="connection-header">
+    <div>
+      <div class="title">Jade Chamber · Cockpit</div>
+      <div class="subtitle">前端仅显示 · 物理运行在 Node.js 服务器</div>
+    </div>
+    <span class="badge" id="mode-badge">MODE · NODE SERVER</span>
+    <span class="badge" id="link-badge" data-state="connecting">SSE CONNECTING</span>
+    <span class="badge" id="frame-badge">t 0.0 s</span>
+  </header>
+
+  <div id="panels-container"></div>
+
+  <script type="module" src="./main.mjs"></script>
+</body>
+</html>

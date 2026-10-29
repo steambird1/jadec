@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>群玉阁 · Browser-only（Worker 物理）</title>
+  <link rel="stylesheet" href="../../../panel/styles/inst_general.css" />
+  <link rel="stylesheet" href="../../../panel/styles/panel_style.css" />
+  <link rel="stylesheet" href="../shared/ui/connection.css" />
+</head>
+<body>
+  <header class="connection-header">
+    <div>
+      <div class="title">Jade Chamber · Cockpit</div>
+      <div class="subtitle">浏览器内物理 · Web Worker 后台计算</div>
+    </div>
+    <span class="badge" id="mode-badge">MODE · BROWSER WORKER</span>
+    <span class="badge" id="link-badge" data-state="connecting">WORKER STARTING</span>
+    <span class="badge" id="frame-badge">t 0.0 s</span>
+    <div class="connection-actions">
+      <button type="button" id="btn-pause">PAUSE</button>
+    </div>
+  </header>
+
+  <div id="panels-container"></div>
+
+  <script type="module" src="./main.mjs"></script>
+</body>
+</html>

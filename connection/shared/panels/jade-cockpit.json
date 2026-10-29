@@ -1,0 +1,173 @@
+{
+  "version": 1,
+  "name": "Jade Chamber Cockpit · Physics Link",
+  "panels": [
+    {
+      "id": "main-panel",
+      "columns": 30,
+      "rows": 8,
+      "cellSize": 44,
+      "gap": 8,
+      "components": [
+        { "id": "light-master-warn", "type": "IndicatorLight", "grid": { "row": 1, "col": 1, "rowSpan": 1, "colSpan": 3 }, "props": { "text": "MASTER WARN", "backgroundColor": "red", "foregroundColor": "white", "initialBrightness": 0, "label": "MASTER WARNING", "labelPosition": "top" } },
+        { "id": "light-master-caution", "type": "IndicatorLight", "grid": { "row": 1, "col": 4, "rowSpan": 1, "colSpan": 3 }, "props": { "text": "MASTER CAUT", "backgroundColor": "amber", "foregroundColor": "white", "initialBrightness": 0, "label": "MASTER CAUTION", "labelPosition": "top" } },
+        { "id": "light-saturated", "type": "IndicatorLight", "grid": { "row": 1, "col": 7, "rowSpan": 1, "colSpan": 4 }, "props": { "text": "SATURATED", "backgroundColor": "red", "foregroundColor": "white", "initialBrightness": 0, "label": "ENVELOPE", "labelPosition": "top" } },
+        { "id": "light-terrain-clearance", "type": "IndicatorLight", "grid": { "row": 1, "col": 11, "rowSpan": 1, "colSpan": 4 }, "props": { "text": "TERRAIN", "backgroundColor": "red", "foregroundColor": "white", "initialBrightness": 0, "label": "CLEARANCE", "labelPosition": "top" } },
+        { "id": "light-ceiling-margin", "type": "IndicatorLight", "grid": { "row": 1, "col": 15, "rowSpan": 1, "colSpan": 4 }, "props": { "text": "CEILING", "backgroundColor": "amber", "foregroundColor": "white", "initialBrightness": 0, "label": "MARGIN", "labelPosition": "top" } },
+        { "id": "light-heading-free", "type": "IndicatorLight", "grid": { "row": 1, "col": 19, "rowSpan": 1, "colSpan": 4 }, "props": { "text": "HDG FREE", "backgroundColor": "red", "foregroundColor": "white", "initialBrightness": 0, "label": "AZIMUTH", "labelPosition": "top" } },
+        { "id": "lightgroup-remain-stones", "type": "IndicatorLightGroup", "grid": { "row": 1, "col": 23, "rowSpan": 1, "colSpan": 8 }, "props": { "rows": 1, "columns": 9, "texts": ["0", "1", "2", "3", "4", "5", "6", "7", "8"], "brightness": [0, 0, 0, 0, 0, 0, 0, 0, 0], "backgroundColor": "green", "foregroundColor": "white", "gap": 2, "fontSize": 8, "label": "REMAIN STONE LOSS", "labelPosition": "bottom" } },
+
+        { "id": "disp-ceiling", "type": "Display", "grid": { "row": 2, "col": 1, "rowSpan": 5, "colSpan": 5 }, "props": { "width": 200, "height": 200, "label": "CEILING MARGIN", "labelPosition": "top" } },
+        { "id": "disp-attitude", "type": "Display", "grid": { "row": 2, "col": 6, "rowSpan": 7, "colSpan": 6 }, "props": { "width": 207, "height": 253, "label": "PFD / ATTITUDE", "labelPosition": "top" } },
+        { "id": "disp-speed", "type": "Display", "grid": { "row": 2, "col": 12, "rowSpan": 3, "colSpan": 3 }, "props": { "width": 132, "height": 132, "label": "AIRSPEED", "labelPosition": "top" } },
+        { "id": "disp-alt-agl", "type": "Display", "grid": { "row": 2, "col": 15, "rowSpan": 3, "colSpan": 3 }, "props": { "width": 132, "height": 132, "label": "AGL", "labelPosition": "top" } },
+        { "id": "disp-vsi", "type": "Display", "grid": { "row": 2, "col": 18, "rowSpan": 3, "colSpan": 3 }, "props": { "width": 132, "height": 132, "label": "VSI", "labelPosition": "top" } },
+        { "id": "disp-clearance", "type": "Display", "grid": { "row": 2, "col": 21, "rowSpan": 4, "colSpan": 4 }, "props": { "width": 200, "height": 240, "label": "DUAL ALTIMETRY", "labelPosition": "top" } },
+        { "id": "disp-compass", "type": "Display", "grid": { "row": 2, "col": 25, "rowSpan": 5, "colSpan": 5 }, "props": { "width": 280, "height": 280, "label": "CRT · HDG UP", "labelPosition": "top" } },
+        { "id": "drum-margin", "type": "DrumDisplay", "grid": { "row": 7, "col": 21, "rowSpan": 2, "colSpan": 4 }, "props": { "value": 0, "integerDigits": 4, "decimalPlaces": 0, "signMode": "negative", "step": 1, "digitHeight": 34, "digitWidth": 20, "label": "CEILING MARGIN (m)", "labelPosition": "top" } },
+        { "id": "drum-lost", "type": "DrumDisplay", "grid": { "row": 7, "col": 25, "rowSpan": 2, "colSpan": 4 }, "props": { "value": 0, "integerDigits": 1, "decimalPlaces": 0, "signMode": "none", "step": 1, "digitHeight": 34, "digitWidth": 20, "label": "STONES CAN LOSE", "labelPosition": "top" } }
+      ]
+    },
+    {
+      "id": "mcp-panel",
+      "columns": 24,
+      "rows": 6,
+      "cellSize": 44,
+      "gap": 8,
+      "components": [
+        { "id": "knob-spd", "type": "KnobContinuous", "grid": { "row": 1, "col": 1, "rowSpan": 2, "colSpan": 2 }, "props": { "minValue": 0, "maxValue": 22, "initialValue": 0, "diameter": 46, "arcStartAngle": 210, "arcEndAngle": 330, "valueDisplayPrecision": 1, "label": "SPD (m/s)", "labelPosition": "bottom" } },
+        { "id": "drum-spd", "type": "DrumDisplay", "grid": { "row": 1, "col": 3, "rowSpan": 2, "colSpan": 4 }, "props": { "value": 0, "integerDigits": 2, "decimalPlaces": 1, "signMode": "none", "step": 0.1, "digitHeight": 30, "digitWidth": 18, "label": "SPD SEL", "labelPosition": "bottom" } },
+        { "id": "knob-trk", "type": "KnobContinuous", "grid": { "row": 1, "col": 7, "rowSpan": 2, "colSpan": 2 }, "props": { "minValue": 0, "maxValue": 359, "initialValue": 0, "diameter": 46, "arcStartAngle": 210, "arcEndAngle": 330, "valueDisplayPrecision": 0, "label": "TRK DRAFT", "labelPosition": "bottom" } },
+        { "id": "drum-trk-draft", "type": "DrumDisplay", "grid": { "row": 1, "col": 9, "rowSpan": 2, "colSpan": 4 }, "props": { "value": 0, "integerDigits": 3, "decimalPlaces": 0, "signMode": "none", "step": 1, "digitHeight": 30, "digitWidth": 18, "label": "TRK DRAFT", "labelPosition": "bottom" } },
+        { "id": "btn-trk-set", "type": "ButtonSimple", "grid": { "row": 1, "col": 13, "rowSpan": 2, "colSpan": 2 }, "props": { "text": "SET", "label": "TRK SET", "labelPosition": "bottom" } },
+        { "id": "drum-trk-sel", "type": "DrumDisplay", "grid": { "row": 1, "col": 15, "rowSpan": 2, "colSpan": 4 }, "props": { "value": 0, "integerDigits": 3, "decimalPlaces": 0, "signMode": "none", "step": 1, "digitHeight": 30, "digitWidth": 18, "label": "TRK ACTIVE", "labelPosition": "bottom" } },
+        { "id": "knob-hdg", "type": "KnobContinuous", "grid": { "row": 1, "col": 19, "rowSpan": 2, "colSpan": 2 }, "props": { "minValue": 0, "maxValue": 359, "initialValue": 0, "diameter": 46, "arcStartAngle": 210, "arcEndAngle": 330, "valueDisplayPrecision": 0, "label": "HDG", "labelPosition": "bottom" } },
+        { "id": "drum-hdg", "type": "DrumDisplay", "grid": { "row": 1, "col": 21, "rowSpan": 2, "colSpan": 4 }, "props": { "value": 0, "integerDigits": 3, "decimalPlaces": 0, "signMode": "none", "step": 1, "digitHeight": 30, "digitWidth": 18, "label": "HDG SEL", "labelPosition": "bottom" } },
+
+        { "id": "knob-alt", "type": "KnobContinuous", "grid": { "row": 3, "col": 1, "rowSpan": 2, "colSpan": 2 }, "props": { "minValue": 0, "maxValue": 1200, "initialValue": 749.3, "diameter": 46, "arcStartAngle": 210, "arcEndAngle": 330, "valueDisplayPrecision": 1, "label": "ALT (m)", "labelPosition": "bottom" } },
+        { "id": "drum-alt", "type": "DrumDisplay", "grid": { "row": 3, "col": 3, "rowSpan": 2, "colSpan": 4 }, "props": { "value": 749.3, "integerDigits": 4, "decimalPlaces": 1, "signMode": "none", "step": 0.1, "digitHeight": 30, "digitWidth": 18, "label": "ALT SEL", "labelPosition": "bottom" } },
+        { "id": "drum-alt-actual", "type": "DrumDisplay", "grid": { "row": 3, "col": 7, "rowSpan": 2, "colSpan": 4 }, "props": { "value": 749, "integerDigits": 4, "decimalPlaces": 1, "signMode": "none", "step": 0.1, "digitHeight": 30, "digitWidth": 18, "label": "AGL ACTUAL", "labelPosition": "bottom" } },
+        { "id": "light-alt-limited", "type": "IndicatorLight", "grid": { "row": 3, "col": 11, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "ALT LTD", "backgroundColor": "amber", "foregroundColor": "white", "initialBrightness": 0, "label": "CEILING CAP", "labelPosition": "top" } },
+        { "id": "light-trk-pending", "type": "IndicatorLight", "grid": { "row": 3, "col": 13, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "PENDING", "backgroundColor": "amber", "foregroundColor": "white", "initialBrightness": 0, "label": "TRK SET", "labelPosition": "top" } },
+        { "id": "light-ceiling-protect", "type": "IndicatorLight", "grid": { "row": 3, "col": 15, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "CEIL LTD", "backgroundColor": "amber", "foregroundColor": "white", "initialBrightness": 0, "label": "PROTECT", "labelPosition": "top" } },
+        { "id": "light-managed", "type": "IndicatorLight", "grid": { "row": 3, "col": 17, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "MANAGED", "backgroundColor": "green", "foregroundColor": "white", "initialBrightness": 0, "label": "SOURCE", "labelPosition": "top" } },
+        { "id": "light-ap", "type": "IndicatorLight", "grid": { "row": 3, "col": 19, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "AP", "backgroundColor": "green", "foregroundColor": "white", "initialBrightness": 0, "label": "AUTOPILOT", "labelPosition": "top" } },
+        { "id": "light-hdg-auto", "type": "IndicatorLight", "grid": { "row": 3, "col": 21, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "HDG AUTO", "backgroundColor": "green", "foregroundColor": "white", "initialBrightness": 0, "label": "OPT HDG", "labelPosition": "top" } },
+
+        { "id": "knob-crab", "type": "KnobDiscrete", "grid": { "row": 5, "col": 1, "rowSpan": 2, "colSpan": 2 }, "props": { "positions": ["OFF", "±30", "±10", "±5"], "initialPosition": 0, "diameter": 46, "arcStartAngle": 210, "arcEndAngle": 330, "label": "CRAB LIMIT", "labelPosition": "bottom" } },
+        { "id": "lever-level", "type": "Lever", "grid": { "row": 5, "col": 3, "rowSpan": 2, "colSpan": 1 }, "props": { "positions": ["FOLLOW", "LEVEL"], "initialPosition": 0, "orientation": "vertical", "slotLength": 70, "label": "LEVEL / FOLLOW", "labelPosition": "bottom" } },
+        { "id": "btn-managed", "type": "ButtonSimple", "grid": { "row": 5, "col": 4, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "MANAGED", "label": "TAKE CONTROL", "labelPosition": "top" } },
+        { "id": "btn-ap", "type": "ButtonSimple", "grid": { "row": 5, "col": 6, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "AP", "label": "AUTOPILOT", "labelPosition": "top" } },
+        { "id": "btn-hdg-auto", "type": "ButtonSimple", "grid": { "row": 5, "col": 8, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "HDG AUTO", "label": "OPTIMAL HEADING", "labelPosition": "top" } },
+        { "id": "btn-emerg-descent", "type": "ButtonSimple", "grid": { "row": 5, "col": 10, "rowSpan": 2, "colSpan": 3 }, "props": { "text": "DESCEND", "guard": true, "label": "EMERGENCY DESCENT", "labelPosition": "top" } },
+        { "id": "btn-sync-hdg", "type": "ButtonSimple", "grid": { "row": 5, "col": 13, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "SYNC HDG", "label": "HDG", "labelPosition": "top" } },
+        { "id": "btn-sync-trk", "type": "ButtonSimple", "grid": { "row": 5, "col": 15, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "SYNC TRK", "label": "TRK", "labelPosition": "top" } },
+        { "id": "btn-sync-alt", "type": "ButtonSimple", "grid": { "row": 5, "col": 17, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "SYNC ALT", "label": "ALT", "labelPosition": "top" } },
+        { "id": "light-level-mode", "type": "IndicatorLight", "grid": { "row": 6, "col": 13, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "LEVEL", "backgroundColor": "blue", "foregroundColor": "white", "initialBrightness": 0, "label": "LEVEL MODE", "labelPosition": "top" } },
+        { "id": "light-emergency", "type": "IndicatorLight", "grid": { "row": 6, "col": 15, "rowSpan": 1, "colSpan": 4 }, "props": { "text": "EMERG DESCENT", "backgroundColor": "red", "foregroundColor": "white", "initialBrightness": 0, "label": "MODE", "labelPosition": "top" } }
+      ]
+    },
+    {
+      "id": "mfd-panel",
+      "columns": 20,
+      "rows": 18,
+      "cellSize": 44,
+      "gap": 8,
+      "components": [
+        { "id": "disp-profile", "type": "Display", "grid": { "row": 1, "col": 1, "rowSpan": 6, "colSpan": 10 }, "props": { "width": 520, "height": 300, "label": "MFD · FIELD PROFILE", "labelPosition": "top" } },
+        { "id": "disp-polar", "type": "Display", "grid": { "row": 1, "col": 11, "rowSpan": 8, "colSpan": 8 }, "props": { "width": 420, "height": 420, "label": "MFD · CAPABILITY POLAR", "labelPosition": "top" } },
+        { "id": "disp-plan", "type": "Display", "grid": { "row": 7, "col": 1, "rowSpan": 6, "colSpan": 10 }, "props": { "width": 520, "height": 300, "label": "MFD · Z-REF PLAN", "labelPosition": "top" } },
+        { "id": "disp-annunc", "type": "Display", "grid": { "row": 9, "col": 11, "rowSpan": 9, "colSpan": 8 }, "props": { "width": 420, "height": 460, "label": "MFD · ANNUNCIATORS", "labelPosition": "top" } }
+      ]
+    },
+    {
+      "id": "fe-panel",
+      "columns": 30,
+      "rows": 12,
+      "cellSize": 44,
+      "gap": 8,
+      "components": [
+        { "id": "lightgroup-stones", "type": "IndicatorLightGroup", "grid": { "row": 1, "col": 1, "rowSpan": 6, "colSpan": 6 }, "props": { "rows": 3, "columns": 3, "texts": ["#6", "#7", "#8", "#3", "#4", "#5", "#0", "#1", "#2"], "brightness": [0, 0, 0, 0, 0, 0, 0, 0, 0], "backgroundColor": "green", "foregroundColor": "white", "gap": 5, "fontSize": 9, "label": "STONE STATUS (3×3)", "labelPosition": "top" } },
+        { "id": "disp-stone-load", "type": "Display", "grid": { "row": 1, "col": 7, "rowSpan": 6, "colSpan": 6 }, "props": { "width": 360, "height": 360, "label": "LIFT STONE OUTPUT", "labelPosition": "top" } },
+
+        { "id": "drum-zref-0", "type": "DrumDisplay", "grid": { "row": 5, "col": 16, "rowSpan": 2, "colSpan": 3 }, "props": { "value": 749, "integerDigits": 3, "decimalPlaces": 2, "signMode": "none", "step": 0.01, "digitHeight": 28, "digitWidth": 14, "label": "zRef #0", "labelPosition": "top" } },
+        { "id": "drum-zref-1", "type": "DrumDisplay", "grid": { "row": 5, "col": 19, "rowSpan": 2, "colSpan": 3 }, "props": { "value": 749, "integerDigits": 3, "decimalPlaces": 2, "signMode": "none", "step": 0.01, "digitHeight": 28, "digitWidth": 14, "label": "zRef #1", "labelPosition": "top" } },
+        { "id": "drum-zref-2", "type": "DrumDisplay", "grid": { "row": 5, "col": 22, "rowSpan": 2, "colSpan": 3 }, "props": { "value": 749, "integerDigits": 3, "decimalPlaces": 2, "signMode": "none", "step": 0.01, "digitHeight": 28, "digitWidth": 14, "label": "zRef #2", "labelPosition": "top" } },
+        { "id": "drum-zref-3", "type": "DrumDisplay", "grid": { "row": 3, "col": 16, "rowSpan": 2, "colSpan": 3 }, "props": { "value": 749, "integerDigits": 3, "decimalPlaces": 2, "signMode": "none", "step": 0.01, "digitHeight": 28, "digitWidth": 14, "label": "zRef #3", "labelPosition": "top" } },
+        { "id": "drum-zref-4", "type": "DrumDisplay", "grid": { "row": 3, "col": 19, "rowSpan": 2, "colSpan": 3 }, "props": { "value": 749, "integerDigits": 3, "decimalPlaces": 2, "signMode": "none", "step": 0.01, "digitHeight": 28, "digitWidth": 14, "label": "zRef #4", "labelPosition": "top" } },
+        { "id": "drum-zref-5", "type": "DrumDisplay", "grid": { "row": 3, "col": 22, "rowSpan": 2, "colSpan": 3 }, "props": { "value": 749, "integerDigits": 3, "decimalPlaces": 2, "signMode": "none", "step": 0.01, "digitHeight": 28, "digitWidth": 14, "label": "zRef #5", "labelPosition": "top" } },
+        { "id": "drum-zref-6", "type": "DrumDisplay", "grid": { "row": 1, "col": 16, "rowSpan": 2, "colSpan": 3 }, "props": { "value": 749, "integerDigits": 3, "decimalPlaces": 2, "signMode": "none", "step": 0.01, "digitHeight": 28, "digitWidth": 14, "label": "zRef #6", "labelPosition": "top" } },
+        { "id": "drum-zref-7", "type": "DrumDisplay", "grid": { "row": 1, "col": 19, "rowSpan": 2, "colSpan": 3 }, "props": { "value": 749, "integerDigits": 3, "decimalPlaces": 2, "signMode": "none", "step": 0.01, "digitHeight": 28, "digitWidth": 14, "label": "zRef #7", "labelPosition": "top" } },
+        { "id": "drum-zref-8", "type": "DrumDisplay", "grid": { "row": 1, "col": 22, "rowSpan": 2, "colSpan": 3 }, "props": { "value": 749, "integerDigits": 3, "decimalPlaces": 2, "signMode": "none", "step": 0.01, "digitHeight": 28, "digitWidth": 14, "label": "zRef #8", "labelPosition": "top" } },
+
+        { "id": "drum-total-weight", "type": "DrumDisplay", "grid": { "row": 1, "col": 26, "rowSpan": 2, "colSpan": 4 }, "props": { "value": 0, "integerDigits": 6, "decimalPlaces": 0, "signMode": "none", "step": 1, "digitHeight": 28, "digitWidth": 13, "label": "TOTAL WEIGHT (t)", "labelPosition": "top" } },
+        { "id": "drum-payload-margin", "type": "DrumDisplay", "grid": { "row": 3, "col": 26, "rowSpan": 2, "colSpan": 4 }, "props": { "value": 0, "integerDigits": 5, "decimalPlaces": 0, "signMode": "negative", "step": 1, "digitHeight": 28, "digitWidth": 13, "label": "LOAD MARGIN (t)", "labelPosition": "top" } },
+        { "id": "drum-water", "type": "DrumDisplay", "grid": { "row": 5, "col": 26, "rowSpan": 2, "colSpan": 4 }, "props": { "value": 0, "integerDigits": 5, "decimalPlaces": 0, "signMode": "none", "step": 1, "digitHeight": 28, "digitWidth": 13, "label": "WATER (t)", "labelPosition": "top" } },
+        { "id": "drum-trim-spread", "type": "DrumDisplay", "grid": { "row": 7, "col": 26, "rowSpan": 2, "colSpan": 4 }, "props": { "value": 0, "integerDigits": 1, "decimalPlaces": 3, "signMode": "none", "step": 0.001, "digitHeight": 28, "digitWidth": 14, "label": "ZREF SPREAD (m)", "labelPosition": "top" } },
+
+        { "id": "disp-propulsion", "type": "Display", "grid": { "row": 7, "col": 1, "rowSpan": 6, "colSpan": 9 }, "props": { "width": 460, "height": 300, "label": "PROPULSION", "labelPosition": "top" } },
+        { "id": "light-trim", "type": "IndicatorLight", "grid": { "row": 7, "col": 10, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "TRIM", "backgroundColor": "amber", "foregroundColor": "white", "initialBrightness": 0, "label": "PERSISTENT", "labelPosition": "top" } },
+        { "id": "light-stone-dev", "type": "IndicatorLight", "grid": { "row": 8, "col": 10, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "STONE DEV", "backgroundColor": "amber", "foregroundColor": "white", "initialBrightness": 0, "label": "> 1%", "labelPosition": "top" } },
+        { "id": "light-fe-level", "type": "IndicatorLight", "grid": { "row": 9, "col": 10, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "LEVEL", "backgroundColor": "blue", "foregroundColor": "white", "initialBrightness": 0, "label": "LEVELING", "labelPosition": "top" } },
+        { "id": "btn-dump", "type": "ButtonSimple", "grid": { "row": 7, "col": 12, "rowSpan": 2, "colSpan": 2 }, "props": { "text": "DUMP 100t", "guard": true, "label": "BALLAST", "labelPosition": "top" } }
+      ]
+    },
+    {
+      "id": "annunciator-panel",
+      "columns": 24,
+      "rows": 9,
+      "cellSize": 44,
+      "gap": 8,
+      "components": [
+        { "id": "light-warn-stiffness", "type": "IndicatorLight", "grid": { "row": 1, "col": 1, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "STIFFNESS LOSS", "backgroundColor": "red", "foregroundColor": "white", "initialBrightness": 0, "label": "WARNING", "labelPosition": "top" } },
+        { "id": "light-warn-saturated", "type": "IndicatorLight", "grid": { "row": 1, "col": 6, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "SATURATED", "backgroundColor": "red", "foregroundColor": "white", "initialBrightness": 0, "label": "WARNING", "labelPosition": "top" } },
+        { "id": "light-warn-negative-gm", "type": "IndicatorLight", "grid": { "row": 1, "col": 11, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "NEGATIVE GM", "backgroundColor": "red", "foregroundColor": "white", "initialBrightness": 0, "label": "WARNING", "labelPosition": "top" } },
+        { "id": "light-warn-stone-lost", "type": "IndicatorLight", "grid": { "row": 1, "col": 16, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "STONE LOST", "backgroundColor": "red", "foregroundColor": "white", "initialBrightness": 0, "label": "WARNING", "labelPosition": "top" } },
+        { "id": "light-warn-ceiling-margin", "type": "IndicatorLight", "grid": { "row": 2, "col": 1, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "CEILING MARGIN", "backgroundColor": "red", "foregroundColor": "white", "initialBrightness": 0, "label": "WARNING", "labelPosition": "top" } },
+        { "id": "light-warn-terrain-clearance", "type": "IndicatorLight", "grid": { "row": 2, "col": 6, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "TERRAIN CLEAR", "backgroundColor": "red", "foregroundColor": "white", "initialBrightness": 0, "label": "WARNING", "labelPosition": "top" } },
+        { "id": "light-warn-heading-free", "type": "IndicatorLight", "grid": { "row": 2, "col": 11, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "HEADING FREE", "backgroundColor": "red", "foregroundColor": "white", "initialBrightness": 0, "label": "WARNING", "labelPosition": "top" } },
+        { "id": "light-warn-diverged", "type": "IndicatorLight", "grid": { "row": 2, "col": 16, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "DIVERGED", "backgroundColor": "red", "foregroundColor": "white", "initialBrightness": 0, "label": "WARNING", "labelPosition": "top" } },
+
+        { "id": "light-caution-stone-dev", "type": "IndicatorLight", "grid": { "row": 4, "col": 1, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "STONE DEV", "backgroundColor": "amber", "foregroundColor": "white", "initialBrightness": 0, "label": "CAUTION", "labelPosition": "top" } },
+        { "id": "light-caution-field-rate", "type": "IndicatorLight", "grid": { "row": 4, "col": 6, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "FIELD RATE", "backgroundColor": "amber", "foregroundColor": "white", "initialBrightness": 0, "label": "CAUTION", "labelPosition": "top" } },
+        { "id": "light-caution-trim", "type": "IndicatorLight", "grid": { "row": 4, "col": 11, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "TRIM PERSIST", "backgroundColor": "amber", "foregroundColor": "white", "initialBrightness": 0, "label": "CAUTION", "labelPosition": "top" } },
+        { "id": "light-caution-crab", "type": "IndicatorLight", "grid": { "row": 4, "col": 16, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "CRAB LIMIT", "backgroundColor": "amber", "foregroundColor": "white", "initialBrightness": 0, "label": "CAUTION", "labelPosition": "top" } },
+        { "id": "light-caution-trk-slew", "type": "IndicatorLight", "grid": { "row": 5, "col": 1, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "TRK SLEW LTD", "backgroundColor": "amber", "foregroundColor": "white", "initialBrightness": 0, "label": "CAUTION", "labelPosition": "top" } },
+        { "id": "light-caution-ceiling-protect", "type": "IndicatorLight", "grid": { "row": 5, "col": 6, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "CEILING PROTECT", "backgroundColor": "amber", "foregroundColor": "white", "initialBrightness": 0, "label": "CAUTION", "labelPosition": "top" } },
+        { "id": "light-caution-trk-pending", "type": "IndicatorLight", "grid": { "row": 5, "col": 11, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "TRK PENDING", "backgroundColor": "amber", "foregroundColor": "white", "initialBrightness": 0, "label": "CAUTION", "labelPosition": "top" } },
+
+        { "id": "light-adv-no-track", "type": "IndicatorLight", "grid": { "row": 7, "col": 1, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "NO TRACK", "backgroundColor": "blue", "foregroundColor": "white", "initialBrightness": 0, "label": "ADVISORY", "labelPosition": "top" } },
+        { "id": "light-adv-zref-diff", "type": "IndicatorLight", "grid": { "row": 7, "col": 6, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "ZREF DIFF", "backgroundColor": "blue", "foregroundColor": "white", "initialBrightness": 0, "label": "ADVISORY", "labelPosition": "top" } },
+        { "id": "light-adv-level", "type": "IndicatorLight", "grid": { "row": 7, "col": 11, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "LEVEL MODE", "backgroundColor": "blue", "foregroundColor": "white", "initialBrightness": 0, "label": "ADVISORY", "labelPosition": "top" } },
+        { "id": "light-adv-manual", "type": "IndicatorLight", "grid": { "row": 7, "col": 16, "rowSpan": 1, "colSpan": 5 }, "props": { "text": "MANUAL", "backgroundColor": "blue", "foregroundColor": "white", "initialBrightness": 0, "label": "ADVISORY", "labelPosition": "top" } },
+
+        { "id": "light-annunc-master-warn", "type": "IndicatorLight", "grid": { "row": 9, "col": 1, "rowSpan": 1, "colSpan": 11 }, "props": { "text": "MASTER WARNING", "backgroundColor": "red", "foregroundColor": "white", "initialBrightness": 0, "label": "W / C / A", "labelPosition": "top" } },
+        { "id": "light-annunc-master-caution", "type": "IndicatorLight", "grid": { "row": 9, "col": 12, "rowSpan": 1, "colSpan": 11 }, "props": { "text": "MASTER CAUTION", "backgroundColor": "amber", "foregroundColor": "white", "initialBrightness": 0, "label": "", "labelPosition": "top" } }
+      ]
+    },
+    {
+      "id": "system-panel",
+      "columns": 20,
+      "rows": 8,
+      "cellSize": 44,
+      "gap": 8,
+      "components": [
+        { "id": "light-link", "type": "IndicatorLight", "grid": { "row": 1, "col": 1, "rowSpan": 1, "colSpan": 3 }, "props": { "text": "LINK", "backgroundColor": "green", "foregroundColor": "white", "initialBrightness": 0, "label": "DATA", "labelPosition": "top" } },
+        { "id": "disp-status", "type": "Display", "grid": { "row": 1, "col": 4, "rowSpan": 7, "colSpan": 9 }, "props": { "width": 480, "height": 320, "label": "SYSTEM / LINK STATUS", "labelPosition": "top" } },
+
+        { "id": "knob-terrain", "type": "KnobDiscrete", "grid": { "row": 1, "col": 13, "rowSpan": 2, "colSpan": 2 }, "props": { "positions": ["FLAT", "RAMP", "HILLS", "RIDGE", "PEAK", "LIYUE"], "initialPosition": 0, "diameter": 46, "arcStartAngle": 210, "arcEndAngle": 330, "label": "TERRAIN", "labelPosition": "top" } },
+        { "id": "btn-reset", "type": "ButtonSimple", "grid": { "row": 1, "col": 15, "rowSpan": 2, "colSpan": 2 }, "props": { "text": "RESET", "guard": true, "label": "NEW SESSION", "labelPosition": "top" } },
+        { "id": "knob-fail-stone", "type": "KnobDiscrete", "grid": { "row": 1, "col": 17, "rowSpan": 2, "colSpan": 2 }, "props": { "positions": ["0", "1", "2", "3", "4", "5", "6", "7", "8"], "initialPosition": 0, "diameter": 46, "arcStartAngle": 210, "arcEndAngle": 330, "label": "STONE #", "labelPosition": "top" } },
+        { "id": "btn-toggle-stone", "type": "ButtonSimple", "grid": { "row": 1, "col": 19, "rowSpan": 2, "colSpan": 2 }, "props": { "text": "FAIL STONE", "guard": true, "label": "TOGGLE LOST", "labelPosition": "top" } },
+
+        { "id": "knob-fail-engine", "type": "KnobDiscrete", "grid": { "row": 3, "col": 13, "rowSpan": 2, "colSpan": 2 }, "props": { "positions": ["FL", "FR", "RL", "RR"], "initialPosition": 0, "diameter": 46, "arcStartAngle": 210, "arcEndAngle": 330, "label": "ENGINE", "labelPosition": "top" } },
+        { "id": "btn-toggle-engine", "type": "ButtonSimple", "grid": { "row": 3, "col": 15, "rowSpan": 2, "colSpan": 2 }, "props": { "text": "FAIL ENG", "guard": true, "label": "TOGGLE", "labelPosition": "top" } },
+        { "id": "knob-wind-dir", "type": "KnobContinuous", "grid": { "row": 3, "col": 17, "rowSpan": 2, "colSpan": 2 }, "props": { "minValue": 0, "maxValue": 359, "initialValue": 0, "diameter": 46, "arcStartAngle": 210, "arcEndAngle": 330, "valueDisplayPrecision": 0, "label": "WIND → °", "labelPosition": "top" } },
+        { "id": "knob-wind-speed", "type": "KnobContinuous", "grid": { "row": 3, "col": 19, "rowSpan": 2, "colSpan": 2 }, "props": { "minValue": 0, "maxValue": 10, "initialValue": 0, "diameter": 46, "arcStartAngle": 210, "arcEndAngle": 330, "valueDisplayPrecision": 1, "label": "WIND m/s", "labelPosition": "top" } },
+
+        { "id": "btn-apply-wind", "type": "ButtonSimple", "grid": { "row": 5, "col": 13, "rowSpan": 1, "colSpan": 2 }, "props": { "text": "APPLY", "label": "WIND", "labelPosition": "top" } },
+        { "id": "btn-stiffness", "type": "ButtonWithLights", "grid": { "row": 5, "col": 15, "rowSpan": 2, "colSpan": 2 }, "props": { "text": "STIFF", "guard": true, "upperLightColor": "red", "upperLightText": "LOSS", "lowerLightColor": "green", "lowerLightText": "OK", "initialUpperBrightness": 0, "initialLowerBrightness": 85, "label": "STIFFNESS", "labelPosition": "top" } }
+      ]
+    }
+  ]
+}

@@ -223,6 +223,85 @@ class ZRefProfile {
   }
   /** 预测：以加速度 a 作准静态跟随时的相对偏差（占 δ₀ 的比例） */
   static quasiStatic(a) { return Math.abs(a) / 9.81; }
+
+  /* ================================================================== *
+   *  前向预测（仪表用）：gapAt(t) / predictTrack(d, V, terrain)
+   *
+   *  ★ 单一真相源：S 曲线的 τ / 速率限 / jerk 限幅只在这里实现一次。
+   *    仪表层（instruments.js）禁止二次实现，否则会与本体走偏。
+   * ================================================================== */
+
+  /**
+   * 预测未来 t 秒后的间隙 gap（集体分量，索引 0）。
+   * 从当前活状态 (zRef, rate, acc) 出发，用与 rateFor 相同的约束前向积分。
+   * @param t        前瞻时间 s
+   * @param target   目标 zRef（集体）；null ⇒ 用 fc.panel 的当前目标
+   * @param mode     'normal' | 'emergency'
+   * @param ceiling  当前升限 m
+   * @param current  当前 zRef（集体值）
+   * @param step     积分步长 s
+   * @returns { gap, zRef, rate, acc }  gap = zRef − δ₀
+   */
+  gapAt(t, { target = null, mode = 'normal', ceiling = Infinity, current = null,
+             step = 0.5, delta0 = 0.3 } = {}) {
+    const C = this.cfg, aMax = this.aMax, rateLim = C.rateLim, jMax = this.jMax;
+    const cur0 = current != null ? current : (this._cur0 || 0);
+    const tgt0 = target != null ? target : (this._tgt0 != null ? this._tgt0 : cur0);
+    /* 升限保护（与 rateFor 一致，只限集体分量） */
+    const cap = ceiling - C.ceilingMargin;
+    const tgt = Math.min(tgt0, cap);
+    let z = cur0, v = this.rate[0], a = this.acc[0];
+    const n = Math.max(1, Math.round(t / step));
+    for (let i = 0; i < n; i++) {
+      const err = tgt - z;
+      let rDes;
+      if (mode === 'emergency') {
+        const stop = Math.sqrt(2 * aMax * Math.abs(err));
+        rDes = Math.sign(err) * Math.min(rateLim, stop);
+      } else {
+        rDes = clamp(err / C.tauS, -rateLim, rateLim);
+      }
+      const aNeed = (rDes - v) / step;
+      a = clamp(clamp(aNeed, a - jMax * step, a + jMax * step), -aMax, aMax);
+      v = clamp(v + a * step, -rateLim, rateLim);
+      z += v * step;
+    }
+    return { gap: z - delta0, zRef: z, rate: v, acc: a };
+  }
+
+  /**
+   * 沿航迹方向的预测航迹与离地（供场剖面 CRT 使用）。
+   * @param dists   距离数组 m
+   * @param V       水平速度 m/s（0 ⇒ 用名义速度并标记 assumed）
+   * @param terrain 地形模块（提供 fieldM / terrainM / slopeAt）
+   * @param pos     当前世界位置 [x, y]
+   * @param dir     单位方向 [ux, uy]
+   * @param opt     透传给 gapAt
+   * @returns 每点 { d, t, T, S, excess, gap, track, clearance }
+   */
+  predictTrack(dists, V, terrain, pos, dir, opt = {}) {
+    const nominal = opt.nominalV || 22;
+    const Vuse = V > 0.5 ? V : nominal;
+    const assumed = !(V > 0.5);
+    return dists.map(d => {
+      const t = d / Vuse;
+      const x = pos[0] + dir[0] * d, y = pos[1] + dir[1] * d;
+      const T = terrain.terrainM(x, y), S = terrain.fieldM(x, y);
+      const sl = terrain.slopeAt(x, y);
+      const g = this.gapAt(t, opt).gap;
+      return {
+        d, t, T, S,
+        excess: S - T,                 // ≥ 0（锥形膨胀保证）
+        gap: g,
+        track: S + g,                  // 预测平台高度
+        clearance: g + (S - T),        // 恒等式：离地 = gap + (S−T)
+        slopeMag: Math.hypot(sl.sx, sl.sy),
+      };
+    }).concat([]).map((p, i, arr) => p);
+  }
+
+  /** 由 fc 更新活状态（供 gapAt 缺省取用） */
+  syncState(currentZRef, targetZRef) { this._cur0 = currentZRef; this._tgt0 = targetZRef; }
 }
 
 /* ==========================================================================
@@ -646,6 +725,8 @@ class FlightControl {
       this.cfg.emergencyDescent ? 'emergency' : 'normal', jc.zRef);
     jc.setZRefRate(this.profile.rate);
     cmd.zRefRate = this.profile.rate[0];
+    /* 供 gapAt() 缺省取用（仪表面板无需再传参） */
+    this.profile.syncState(jc.zRef[0], target[0]);
 
     /* 4) 自动驾驶（阻尼 / 水平 / 偏航 / 分配）—— 两种源都跑 */
     const A = this.ap.compute(S, cmd);

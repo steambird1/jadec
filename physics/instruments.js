@@ -80,8 +80,11 @@ class InstrumentSuite {
     this.cfg = Object.assign({
       /* 能力极坐标 */
       aero: AERO, polarStep: 15, vScanMax: 45, vScanStep: 0.25,
-      /* 地形剖面 */
-      profileRange: 5000, profileN: 11,
+      /* 场剖面：主轴 = 距离，量程 = 自适应 */
+      profileRange: 5000, profileN: 15,         // profileRange 保留作兜底
+      profileLookaheadT: 600,                   // 前瞻时间 s ⇒ 量程恒定 10 min
+      profileRangeMin: 2000, profileRangeMax: 15000,
+      profileNominalV: 22,                      // 保位时预测航迹的名义速度
       /* 告警阈值 */
       marginWarn: 100, clearanceWarn: 50, stoneDevWarn: 0.01,
       trimPersistentPct: 0.5,       // 推进器持续非零（%W）⇒ 该配平了
@@ -289,30 +292,114 @@ class InstrumentSuite {
   }
 
   /* ==================================================================== *
-   *  2.6 地形 / 场剖面（沿航迹方向前视）
+   *  2.6 场剖面（三条曲线：T / S / 预测航迹）
+   *
+   *  ★ 主轴 = 距离（地物固定、可标航路点）；量程 = 自适应（前瞻时间恒定）
+   *  ★ 预测航迹需要 gap(t)，即 S 曲线 —— 由控制层 ZRefProfile.gapAt() 提供，
+   *    本层不二次实现 S 曲线（避免走偏）
+   *  ★ 恒等式：clearance = gap(t) + (S − T)，且 S ≥ T ⇒ 离地 ≥ gap
    * ==================================================================== */
-  terrainProfile(S = this.sense()) {
+
+  /** 建议的自适应量程 */
+  lookahead(v = null) {
+    const C = this.cfg, jc = this.jc;
+    const V = v != null ? v : 0;
+    const R = Math.min(C.profileRangeMax, Math.max(C.profileRangeMin,
+      Math.max(V, 0) * C.profileLookaheadT));
+    const Vuse = V > 0.5 ? V : C.profileNominalV;
+    return {
+      rangeM: R, lookaheadT: C.profileLookaheadT,
+      V: V, lookaheadV: Vuse,
+      assumedV: !(V > 0.5),                 // 保位时用名义速度，须文字标注
+      actualT: V > 0.5 ? R / V : Infinity,
+      rangeMin: C.profileRangeMin, rangeMax: C.profileRangeMax,
+      nominalV: C.profileNominalV,
+      note: V > 0.5
+        ? `自适应量程 ${(R / 1000).toFixed(1)} km / ${C.profileLookaheadT} s`
+        : `保位：量程取下限 ${(C.profileRangeMin / 1000).toFixed(0)} km，`
+          + `航迹预测按名义 V=${C.profileNominalV} m/s（须标注）`,
+    };
+  }
+
+  fieldProfile(S = null, opt = {}) {
+    if (!S) S = this.sense();
     const jc = this.jc, s = S.state, C = this.cfg;
     const v = Math.hypot(S.Vw[0], S.Vw[1]);
-    const dir = v > 0.5
-      ? Math.atan2(S.Vw[0], S.Vw[1])                 // 航迹方向（世界 x-y）
-      : s.psi;                                        // 保位时看艏向
+    let dir, dirSrc;
+    if (opt.dirDeg != null) { dir = opt.dirDeg / DEG; dirSrc = '指定方位（规划用）'; }
+    else if (v > 0.5) { dir = Math.atan2(S.Vw[0], S.Vw[1]); dirSrc = '航迹方向'; }
+    else { dir = s.psi; dirSrc = '艏向（保位）'; }
     const ux = Math.sin(dir), uy = Math.cos(dir);
-    const x0 = s.P[0], y0 = s.P[1];
-    const pts = [];
-    for (let i = 0; i < C.profileN; i++) {
-      const d = C.profileRange * i / (C.profileN - 1);
-      const x = x0 + ux * d, y = y0 + uy * d;
-      const T = jc.terrain.terrainM(x, y), Fd = jc.terrain.fieldM(x, y);
-      const sl = jc.terrain.slopeAt(x, y);
-      pts.push({ d, T, S: Fd, smoothExcess: Fd - T, slopeMag: Math.hypot(sl.sx, sl.sy) });
+
+    const la = this.lookahead(v);
+    const R = opt.rangeM != null ? opt.rangeM : la.rangeM;
+    const n = opt.n != null ? opt.n : C.profileN;
+    const dists = [];
+    for (let i = 0; i < n; i++) dists.push(R * i / (n - 1));
+
+    const pos = [s.P[0], s.P[1]];
+    const pr = this.fc ? this.fc.profile : null;
+    const emerg = this.fc ? !!this.fc.cfg.emergencyDescent : false;
+    const optG = {
+      mode: emerg ? 'emergency' : 'normal',
+      ceiling: S.ceiling,
+      current: jc.zRef[0],
+      target: this.fc ? this.fc._zRefTarget ? this.fc._zRefTarget(S)[0] : null : null,
+      delta0: S.delta0,
+      nominalV: C.profileNominalV,
+    };
+
+    let pts;
+    if (pr) {
+      /* 控制层单一真相源：同 τ / 速率限 / jerk 限幅 */
+      pts = pr.predictTrack(dists, v, jc.terrain, pos, [ux, uy], optG);
+    } else {
+      /* 无控制层：退化为准静态（gap 不变），仍标出 S−T */
+      const Vuse = v > 0.5 ? v : C.profileNominalV;
+      pts = dists.map(d => {
+        const x = pos[0] + ux * d, y = pos[1] + uy * d;
+        const T = jc.terrain.terrainM(x, y), Fd = jc.terrain.fieldM(x, y);
+        const sl = jc.terrain.slopeAt(x, y);
+        const g = S.gap;
+        return { d, t: d / Vuse, T, S: Fd, excess: Fd - T, gap: g,
+                 track: Fd + g, clearance: g + (Fd - T),
+                 slopeMag: Math.hypot(sl.sx, sl.sy) };
+      });
     }
-    /* 前视最小真实离地（假设高度不变） */
-    const hNow = s.P[2] - jc.cfg.c;
-    const minClear = Math.min(...pts.map(p => hNow - p.T));
-    return { dirDeg: brg(dir * DEG), range: C.profileRange, points: pts,
-             minClearanceAhead: minClear, lowAhead: minClear < this.cfg.clearanceWarn };
+
+    const minClear = Math.min(...pts.map(p => p.clearance));
+    const minEx = Math.min(...pts.map(p => p.excess));
+    const iMinC = pts.indexOf(pts.find(p => p.clearance === minClear));
+    const iMinE = pts.indexOf(pts.find(p => p.excess === minEx));
+    return {
+      dirDeg: brg(dir * DEG),
+      /* ★ 建议的自适应量程 */
+      rangeM: R, lookaheadT: la.lookaheadT, lookaheadV: la.lookaheadV,
+      assumedV: la.assumedV, actualT: la.actualT,
+      rangeMin: la.rangeMin, rangeMax: la.rangeMax, nominalV: la.nominalV,
+      lookaheadNote: la.note,
+      dirSrc, V: v,
+      points: pts,
+      /* 分组：terrain / field / clearance */
+      terrain: { minClearance: minClear, atD: pts[iMinC].d,
+                 lowAhead: minClear < this.cfg.clearanceWarn },
+      field:   { minExcess: minEx, atD: pts[iMinE].d,
+                 maxSlopeMag: Math.max(...pts.map(p => p.slopeMag)),
+                 sRateMax: Math.max(...pts.map(p => p.slopeMag)) * la.lookaheadV },
+      clearance: { min: minClear, atD: pts[iMinC].d,
+                   /* 恒等式校验：min clearance ≈ gap + min(S−T) */
+                   identity: S.gap + minEx,
+                   gapFloor: S.gap },
+      kinds: ['T 真实地形', 'S 场参考面', 'S+gap(t) 预测航迹'],
+      notes: [
+        'clearance = gap(t) + (S−T)，S ≥ T ⇒ 离地 ≥ gap（撞地数学上不可能，只要 gap ≥ minAGL）',
+        '最险处是 (S−T) 最小处（峰顶正中），不是地形最高处',
+        '主轴 = 距离；量程 = 自适应 clamp(V·T_look)；时间仅作副标尺',
+      ],
+    };
   }
+  /** 兼容旧名 */
+  terrainProfile(S = this.sense(), opt = {}) { return this.fieldProfile(S, opt); }
 
   /* ==================================================================== *
    *  2.7 能力极坐标（DP 标准件，四瓣）
@@ -481,7 +568,9 @@ class InstrumentSuite {
     const cur = jc.zRef[0];
     const err0 = target - cur;
     const emerg = !!this.fc.cfg.emergencyDescent;
-    const { eta, eta95, rateNow, accNow } = this._eta(cur, target, err0, emerg, pr);
+    const { eta, eta95 } = this._eta(cur, target, err0, emerg, pr);
+    /* ★ 当前速率 / 加速度读**活状态**（原实现返回前向模拟的终态速度，恒 ≈0） */
+    const rateNow = pr.rate[0], accNow = pr.acc[0];
     return {
       targetAGL: p.sel.alt, targetZRef: target, currentZRef: cur,
       error: err0,
@@ -514,6 +603,7 @@ class InstrumentSuite {
       if (Math.abs(target - z) <= 0.05) break;
     }
     return { eta: t, eta95: eta95 != null ? eta95 : t, rateNow: v, accNow: 0 };
+    /* 注：rateNow/accNow 已弃用 —— zRefPlan 改读 pr.rate[0]/pr.acc[0] 活状态 */
   }
 
   /* ==================================================================== *
@@ -668,6 +758,7 @@ class InstrumentSuite {
       attitude:   this.attitude(S),
       fieldRate:  this.fieldRate(S),
       vsi:        this.vsi(S, dt),
+      fieldProfile: this.fieldProfile(S),
       terrain:    this.terrainProfile(S),
       capability: this.capability(S),
       damping:    this.damping(S),
@@ -749,6 +840,22 @@ function render(inst, title = '') {
   F('俯仰周期', R.damping.modes.pitch.T, 's');
   F('推进器峰值占用', R.damping.peakThrustPct, '%W');
   F('持续非零（该配平）', R.damping.trimPersistent ? 'YES' : 'no');
+
+  H('场剖面（T / S / 预测航迹）');
+  F('建议的自适应量程', (R.fieldProfile.rangeM / 1000).toFixed(1), 'km');
+  F('  前瞻时间 T_look', R.fieldProfile.lookaheadT, 's');
+  F('  当前水平速度 V', R.fieldProfile.V.toFixed(2), 'm/s');
+  F('  近似巡航速度 V', R.fieldProfile.lookaheadV, 'm/s');
+  F('  量程区间', `${(R.fieldProfile.rangeMin / 1000).toFixed(0)}–${(R.fieldProfile.rangeMax / 1000).toFixed(0)}`, 'km');
+  F('  保位（用名义V）', R.fieldProfile.assumedV ? '是（须标注）' : '否');
+  F('  实际前瞻时间', isFinite(R.fieldProfile.actualT)
+    ? (R.fieldProfile.actualT / 60).toFixed(1) + ' min' : '∞（保位）');
+  F('前视最小离地', R.fieldProfile.clearance.min, 'm');
+  F('  出现在', (R.fieldProfile.clearance.atD / 1000).toFixed(1), 'km');
+  F('前视最小 (S−T)', R.fieldProfile.field.minExcess, 'm');
+  F('  出现在', (R.fieldProfile.field.atD / 1000).toFixed(1), 'km');
+  F('恒等式校验 gap+min(S−T)', R.fieldProfile.clearance.identity, 'm');
+  F('曲线', R.fieldProfile.kinds.join(' / '));
 
   H('CRT 圆表（HDG UP）');
   F('卡片顶端读数', R.compass.cardTopDeg, '°');
@@ -1004,6 +1111,102 @@ if (require.main === module) {
        `Ṡ_max=${(jc.cfg.sMax * jc.cfg.Vmax).toFixed(2)} vs r_max=${jc.cfg.rMaxField} ⇒ 告警${R.fieldRate.alarmReachable ? '可' : '不可'}触发`);
   }
 
+  /* ---------- 场剖面（三条曲线 / 自适应量程 / 恒等式） ---------- */
+  /* A) 自适应量程：距离轴 + clamp(V·T_look) */
+  {
+    const j = new JadeChamber({ terrain: { preset: 'peak' } });
+    const f = new FlightControl(j);
+    const it = new InstrumentSuite(j, f);
+    j.placeAt(-3000, 1000, 749.3 - j.delta0());
+    f.panel.setKnob('SPD', 22); f.panel.setKnob('TRK', 90); f.panel.pressTRKSET();
+    j.state.psi = Math.PI / 2; j.state.V = [22, 0, 0];
+    for (let i = 0; i < 400; i++) f.update(0.05);
+    const R = it.read();
+    const FP = R.fieldProfile;
+    /* 用实测 V 反推期望量程（自动驾驶已收敛到 SPD=22，但有微小残差） */
+    const wantR = Math.min(15000, Math.max(2000, FP.V * 600));
+    ok(near(FP.rangeM, wantR, 1e-6),
+       `自适应量程 = clamp(V·600s) = ${(wantR / 1000).toFixed(1)} km`, (FP.rangeM / 1000).toFixed(1));
+    ok(FP.assumedV === false && near(FP.lookaheadV, FP.V, 1e-6),
+       `巡航：用实际 V=${FP.lookaheadV.toFixed(2)} m/s，名义标注关闭`);
+    ok(FP.V > 21 && near(FP.actualT, FP.rangeM / FP.V, 1e-6),
+       `实际前瞻 ${(FP.actualT / 60).toFixed(1)} min ≈ T_look 600 s`);
+  }
+
+  /* B) 保位 V=0 ⇒ 量程取下限 + 名义速度标注 */
+  {
+    const R = inst.read();
+    const FP = R.fieldProfile;
+    ok(near(FP.rangeM, 2000, 1e-6) && FP.assumedV === true,
+       `保位：量程取下限 ${(FP.rangeM / 1000).toFixed(0)} km，预测用名义 V=${FP.lookaheadV}（须标注）`);
+    ok(!isFinite(FP.actualT), '保位：实际前瞻时间 ∞（d 到不了）');
+  }
+
+  /* C) 恒等式：min clearance = gap + min(S−T)，且 ≥ gap */
+  {
+    const j = new JadeChamber({ terrain: { preset: 'peak' } });
+    const f = new FlightControl(j);
+    const it = new InstrumentSuite(j, f);
+    j.placeAt(-3000, 1000, 749.3 - j.delta0());
+    f.panel.setKnob('SPD', 22); f.panel.setKnob('TRK', 90); f.panel.pressTRKSET();
+    j.state.psi = Math.PI / 2; j.state.V = [22, 0, 0];
+    for (let i = 0; i < 400; i++) f.update(0.05);
+    const R = it.read(), FP = R.fieldProfile;
+    ok(near(FP.clearance.min, FP.clearance.identity, 0.5),
+       `最小离地 ${FP.clearance.min.toFixed(1)} = gap + min(S−T) ${FP.clearance.identity.toFixed(1)}`);
+    ok(FP.clearance.min >= FP.clearance.gapFloor - 1e-6,
+       `离地 ${FP.clearance.min.toFixed(1)} ≥ gap ${FP.clearance.gapFloor.toFixed(1)}（撞地不可能）`);
+    ok(FP.field.minExcess >= -1e-6, `min(S−T) = ${FP.field.minExcess.toFixed(2)} ≥ 0（S ≥ T）`);
+    ok(FP.terrain.lowAhead === false,
+       `前视无低离地告警（恒等式保证；告警职责归 gap/升限）`);
+  }
+
+  /* D) 最险处 = (S−T) 最小处，不是地形最高处 */
+  {
+    const j = new JadeChamber({ terrain: { preset: 'peak' } });
+    const f = new FlightControl(j);
+    const it = new InstrumentSuite(j, f);
+    j.placeAt(-3000, 1000, 749.3 - j.delta0());
+    f.panel.setKnob('SPD', 22); f.panel.setKnob('TRK', 90); f.panel.pressTRKSET();
+    j.state.psi = Math.PI / 2; j.state.V = [22, 0, 0];
+    for (let i = 0; i < 400; i++) f.update(0.05);
+    const FP = it.read().fieldProfile;
+    let iMaxT = 0; FP.points.forEach((p, i) => { if (p.T > FP.points[iMaxT].T) iMaxT = i; });
+    ok(Math.abs(FP.field.atD - FP.clearance.atD) < FP.rangeM / (FP.points.length - 1) + 1,
+       `最小离地出现在 ${(FP.clearance.atD / 1000).toFixed(1)} km = min(S−T) 处（地形最高点在 ${(FP.points[iMaxT].d / 1000).toFixed(1)} km）`);
+  }
+
+  /* E) zRefPlan 当前速率 = 活状态（原实现恒为 0） */
+  {
+    const j = new JadeChamber({ terrain: { preset: 'flat' } });
+    const f = new FlightControl(j);
+    const it = new InstrumentSuite(j, f);
+    for (let i = 0; i < 200; i++) f.update(0.05);
+    f.panel.setKnob('ALT', 400);
+    for (let i = 0; i < 100; i++) f.update(0.05);      // 5 s，S 曲线加速段
+    const R = it.read();
+    ok(near(R.zRefPlan.rateNow, f.profile.rate[0], 1e-12),
+       `rateNow ${R.zRefPlan.rateNow.toFixed(3)} = profile.rate[0]（活状态）`);
+    ok(Math.abs(R.zRefPlan.rateNow) > 1e-3,
+       `下降中速率非零 ${R.zRefPlan.rateNow.toFixed(3)} m/s（原实现恒 0）`);
+    ok(near(R.zRefPlan.accNow, f.profile.acc[0], 1e-12),
+       `accNow ${R.zRefPlan.accNow.toFixed(4)} = profile.acc[0]`);
+  }
+
+  /* F) Ṡ 前视最大值恒 < r_max（锥形膨胀保证） */
+  {
+    const j = new JadeChamber({ terrain: { preset: 'peak' } });
+    const f = new FlightControl(j);
+    const it = new InstrumentSuite(j, f);
+    j.placeAt(-3000, 1000, 749.3 - j.delta0());
+    f.panel.setKnob('SPD', 22); f.panel.setKnob('TRK', 90); f.panel.pressTRKSET();
+    j.state.psi = Math.PI / 2; j.state.V = [22, 0, 0];
+    for (let i = 0; i < 400; i++) f.update(0.05);
+    const FP = it.read().fieldProfile;
+    ok(FP.field.sRateMax <= j.cfg.rMaxField + 1e-9,
+       `前视 max Ṡ ${FP.field.sRateMax.toFixed(2)} ≤ r_max ${j.cfg.rMaxField}（永不告警）`);
+  }
+
   /* ---------- 演示 2：斜坡 ---------- */
   console.log('\n');
   const j4 = new JadeChamber({ terrain: { preset: 'ramp' } });
@@ -1012,6 +1215,41 @@ if (require.main === module) {
   j4.placeAt(0, 0, 749.3 - j4.delta0());
   for (let i = 0; i < 2400; i++) f4.update(0.05);
   console.log(render(i4, '演示 2 · 斜坡地形（FOLLOW SLOPE）'));
+
+  /* ---------- 演示 3：朝峰顶巡航（自适应量程 + 三线剖面） ---------- */
+  console.log('\n');
+  const j5 = new JadeChamber({ terrain: { preset: 'peak' } });
+  const f5 = new FlightControl(j5);
+  const i5 = new InstrumentSuite(j5, f5);
+  j5.placeAt(-3000, 1000, 749.3 - j5.delta0());
+  f5.panel.setKnob('SPD', 22); f5.panel.setKnob('TRK', 90); f5.panel.pressTRKSET();
+  j5.state.psi = Math.PI / 2; j5.state.V = [22, 0, 0];
+  for (let i = 0; i < 400; i++) f5.update(0.05);
+  /* 钉住位置与航向，使剖面沿 +x 正对峰顶（1400,1000），便于对照 */
+  j5.state.P = [-3000, 1000, j5.state.P[2]];
+  j5.state.V = [22, 0, 0]; j5.state.psi = 0;
+  console.log(render(i5, '演示 3 · 朝峰顶巡航（自适应量程 / 三线剖面）'));
+  {
+    /* 显式指向峰顶（+x 方向），便于对照 —— 默认会跟随实际航迹 */
+    const FP = i5.fieldProfile(null, { dirDeg: 90, rangeM: 13200 });
+    const P = FP.points;
+    console.log('\n  建议的自适应量程    ' + (FP.rangeM / 1000).toFixed(1) + ' km / '
+      + FP.lookaheadT + ' s   前瞻时间 ' + (FP.actualT / 60).toFixed(1) + ' min');
+    console.log('  近似巡航速度 V      ' + FP.lookaheadV.toFixed(1) + ' m/s'
+      + (FP.assumedV ? '（名义值，须标注）' : ''));
+    console.log('\n   d(km)   t(s)        T          S      S-T     gap(t)   航迹预测   离地');
+    for (let k = 0; k < P.length; k += 2) {
+      const p = P[k];
+      console.log('  ' + (p.d / 1000).toFixed(1).padStart(5) + p.t.toFixed(1).padStart(8)
+        + p.T.toFixed(1).padStart(10) + p.S.toFixed(1).padStart(10)
+        + p.excess.toFixed(1).padStart(8) + p.gap.toFixed(2).padStart(10)
+        + p.track.toFixed(1).padStart(10) + p.clearance.toFixed(1).padStart(9));
+    }
+    console.log('\n  最小离地 ' + FP.clearance.min.toFixed(1) + ' m @ '
+      + (FP.clearance.atD / 1000).toFixed(1) + ' km   最小(S−T) '
+      + FP.field.minExcess.toFixed(1) + ' m @ ' + (FP.field.atD / 1000).toFixed(1) + ' km');
+    console.log('  恒等式校验：gap + min(S−T) = ' + FP.clearance.identity.toFixed(1) + ' m');
+  }
 
   console.log(`\n══════ 结果：${nPass} 通过 / ${nFail} 失败 ══════`);
   process.exit(nFail ? 1 : 0);

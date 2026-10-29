@@ -1,0 +1,266 @@
+{
+  "version": 1,
+  "name": "PFD-Captain-Side",
+  "panels": [
+    {
+      "id": "main-panel",
+      "columns": 38,
+      "rows": 28,
+      "cellSize": 23,
+      "gap": 8,
+      "components": [
+        {
+          "id": "att-disp",
+          "type": "Display",
+          "grid": {
+            "row": 8,
+            "col": 16,
+            "rowSpan": 9,
+            "colSpan": 11
+          },
+          "props": {
+            "width": 207,
+            "height": 253,
+            "label": "",
+            "labelPosition": "top",
+            "labelOrientation": "horizontal"
+          }
+        },
+        {
+          "id": "spd-disp",
+          "type": "Display",
+          "grid": {
+            "row": 8,
+            "col": 10,
+            "rowSpan": 6,
+            "colSpan": 6
+          },
+          "props": {
+            "width": 132,
+            "height": 132,
+            "label": "",
+            "labelPosition": "top",
+            "labelOrientation": "horizontal"
+          }
+        },
+        {
+          "id": "light-copy-2",
+          "type": "IndicatorLight",
+          "grid": {
+            "row": 7,
+            "col": 16,
+            "rowSpan": 1,
+            "colSpan": 4
+          },
+          "props": {
+            "text": "CHECK INST",
+            "backgroundColor": "#f29c07",
+            "foregroundColor": "white",
+            "initialBrightness": 0,
+            "guard": false,
+            "label": "",
+            "labelPosition": "top",
+            "labelOrientation": "horizontal"
+          }
+        },
+        {
+          "id": "light-copy-3",
+          "type": "IndicatorLight",
+          "grid": {
+            "row": 6,
+            "col": 13,
+            "rowSpan": 1,
+            "colSpan": 3
+          },
+          "props": {
+            "text": "GPWS",
+            "backgroundColor": "#f21859",
+            "foregroundColor": "white",
+            "initialBrightness": 0,
+            "guard": false,
+            "label": "",
+            "labelPosition": "top",
+            "labelOrientation": "horizontal"
+          }
+        },
+        {
+          "id": "alt-disp",
+          "type": "Display",
+          "grid": {
+            "row": 8,
+            "col": 27,
+            "rowSpan": 6,
+            "colSpan": 6
+          },
+          "props": {
+            "width": 132,
+            "height": 132,
+            "label": "",
+            "labelPosition": "top",
+            "labelOrientation": "horizontal"
+          }
+        },
+        {
+          "id": "nav-disp",
+          "type": "Display",
+          "grid": {
+            "row": 17,
+            "col": 16,
+            "rowSpan": 11,
+            "colSpan": 11
+          },
+          "props": {
+            "width": 132,
+            "height": 132,
+            "label": "",
+            "labelPosition": "top",
+            "labelOrientation": "horizontal"
+          }
+        },
+        {
+          "id": "light-2",
+          "type": "IndicatorLight",
+          "grid": {
+            "row": 7,
+            "col": 26,
+            "rowSpan": 1,
+            "colSpan": 1
+          },
+          "props": {
+            "text": "",
+            "backgroundColor": "#f29c07",
+            "foregroundColor": "white",
+            "initialBrightness": 0,
+            "guard": false,
+            "label": "",
+            "labelPosition": "top",
+            "labelOrientation": "horizontal"
+          }
+        },
+        {
+          "id": "vspd-disp",
+          "type": "Display",
+          "grid": {
+            "row": 14,
+            "col": 27,
+            "rowSpan": 6,
+            "colSpan": 6
+          },
+          "props": {
+            "width": 132,
+            "height": 132,
+            "label": "",
+            "labelPosition": "top",
+            "labelOrientation": "horizontal"
+          }
+        },
+        {
+          "id": "display-copy",
+          "type": "Display",
+          "grid": {
+            "row": 8,
+            "col": 33,
+            "rowSpan": 6,
+            "colSpan": 6
+          },
+          "props": {
+            "width": 132,
+            "height": 132,
+            "label": "",
+            "labelPosition": "top",
+            "labelOrientation": "horizontal"
+          }
+        },
+        {
+          "id": "display-copy-2",
+          "type": "Display",
+          "grid": {
+            "row": 2,
+            "col": 27,
+            "rowSpan": 6,
+            "colSpan": 6
+          },
+          "props": {
+            "width": 132,
+            "height": 132,
+            "label": "",
+            "labelPosition": "top",
+            "labelOrientation": "horizontal"
+          }
+        },
+        {
+          "id": "lightgroup-1",
+          "type": "IndicatorLightGroup",
+          "grid": {
+            "row": 20,
+            "col": 10,
+            "rowSpan": 1,
+            "colSpan": 6
+          },
+          "props": {
+            "rows": 1,
+            "columns": 5,
+            "gap": 0,
+            "fontSize": 10,
+            "texts": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5"
+            ],
+            "brightness": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "backgroundColor": "green",
+            "foregroundColor": "white",
+            "label": "REMAIN STONE LOSS",
+            "labelPosition": "bottom",
+            "labelOrientation": "horizontal"
+          }
+        },
+        {
+          "id": "display-copy-3",
+          "type": "Display",
+          "grid": {
+            "row": 14,
+            "col": 10,
+            "rowSpan": 6,
+            "colSpan": 6
+          },
+          "props": {
+            "width": 132,
+            "height": 132,
+            "label": "",
+            "labelPosition": "top",
+            "labelOrientation": "horizontal"
+          }
+        },
+        {
+          "id": "light-copy",
+          "type": "IndicatorLight",
+          "grid": {
+            "row": 7,
+            "col": 20,
+            "rowSpan": 1,
+            "colSpan": 4
+          },
+          "props": {
+            "text": "MAX BANK",
+            "backgroundColor": "#f29c07",
+            "foregroundColor": "white",
+            "initialBrightness": 0,
+            "guard": false,
+            "label": "",
+            "labelPosition": "top",
+            "labelOrientation": "horizontal"
+          }
+        }
+      ]
+    }
+  ]
+}

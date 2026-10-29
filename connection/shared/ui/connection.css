@@ -1,0 +1,104 @@
+/* connection/shared/ui/connection.css —— 两种部署共用的页面外壳样式 */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: #0b0e13;
+  color: #e3ebf5;
+  font-family: Bahnschrift, "Segoe UI", Arial, sans-serif;
+}
+
+.connection-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 18px;
+  background: linear-gradient(180deg, #171d26, #10151d);
+  border-bottom: 1px solid #2c3542;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+}
+
+.connection-header .title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.connection-header .subtitle {
+  font-size: 11px;
+  color: #8d99a8;
+  letter-spacing: 0.03em;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid #3b4655;
+  border-radius: 999px;
+  font-family: Consolas, "Cascadia Code", Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: #b9c5d5;
+  background: #121821;
+}
+
+.badge::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #77828f;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.15);
+}
+
+.badge[data-state="online"] { border-color: #2f7d55; color: #7ee2a8; }
+.badge[data-state="online"]::before {
+  background: #37d67a;
+  box-shadow: 0 0 8px #37d67a;
+}
+.badge[data-state="connecting"] { border-color: #7d6a2f; color: #ffd27a; }
+.badge[data-state="connecting"]::before {
+  background: #ffb020;
+  box-shadow: 0 0 8px #ffb020;
+}
+.badge[data-state="error"] { border-color: #7d3030; color: #ff9a9a; }
+.badge[data-state="error"]::before {
+  background: #ff4d4f;
+  box-shadow: 0 0 8px #ff4d4f;
+}
+
+.connection-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.connection-actions button {
+  font: inherit;
+  font-size: 11px;
+  color: #d7e1ee;
+  background: #1b2330;
+  border: 1px solid #3b4655;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.connection-actions button:hover { background: #243040; }
+
+#panels-container {
+  padding: 18px;
+}
+
+@media (max-width: 900px) {
+  #panels-container { padding: 8px; }
+  .connection-header { padding: 8px 10px; gap: 8px; }
+}
